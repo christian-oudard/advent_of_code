@@ -2,7 +2,7 @@ from collections import defaultdict
 
 left = []
 right = []
-with open('day1_input') as f:
+with open('day01_input') as f:
     for line in f.readlines():
         l, r = ( int(n) for n in line.split() )
         left.append(l)

@@ -2,7 +2,7 @@ from itertools import pairwise
 
 
 def get_input():
-    with open('day2_input') as f:
+    with open('day02_input') as f:
         for line in f.readlines():
             nums = [ int(n) for n in line.split() ]
             yield nums

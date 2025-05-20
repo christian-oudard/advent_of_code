@@ -1,6 +1,6 @@
 import re
 
-memory = open('day3_input').read()
+memory = open('day03_input').read()
 
 # Part 1.
 matches = re.finditer(r'mul\(([0-9]+),([0-9]+)\)', memory)

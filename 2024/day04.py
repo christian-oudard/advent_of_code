@@ -9,7 +9,7 @@
 # SAXAMASAAA
 # MAMMMXMMMM
 # MXMXAXMASX'''
-text = open('day4_input').read()
+text = open('day04_input').read()
 
 grid = text.splitlines()
 height = len(grid)
