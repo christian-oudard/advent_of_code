@@ -20,13 +20,13 @@ def read_input():
 def split_molecule(s):
     """
     >>> split_molecule('SiRnFAr')
-    ['Si', 'Rn', 'F', 'Ar']
+    ('Si', 'Rn', 'F', 'Ar')
     """
-    return [
+    return tuple(
         atom for atom in
         re.split(r'([A-Z][a-z]?)', s)
         if atom != ''
-    ]
+    )
 
 
 def join_molecule(atoms):
@@ -35,82 +35,42 @@ def join_molecule(atoms):
 
 def next_molecules(start, replacements):
     """
-    >>> replacements = {'H': ['HO', 'OH'], 'O': ['HH']}
-    >>> sorted(set(next_molecules('HOH', replacements)))
+    >>> replacements = {'H': [('H', 'O'), ('O', 'H')], 'O': [('H', 'H')]}
+    >>> [ join_molecule(m) for m in sorted(set(next_molecules(split_molecule('HOH'), replacements))) ]
     ['HHHH', 'HOHO', 'HOOH', 'OHOH']
-    >>> len(set(next_molecules('HOHOHO', replacements)))
+    >>> len(set(next_molecules(split_molecule('HOHOHO'), replacements)))
     7
     """
-    start = split_molecule(start)
-    replacements = {
-        c: [ split_molecule(repl) for repl in repls ]
-        for c, repls in replacements.items()
-    }
     for i, c in enumerate(start):
         for repl in replacements.get(c, []):
             next_molecule = list(start)
             next_molecule[i:i+1] = list(repl)
-            s = join_molecule(next_molecule)
-            yield s
-
-
-def previous_molecules(start, replacements):
-    """
-    >>> replacements = {'H': ['HO', 'OH'], 'O': ['HH']}
-    >>> sorted(set(previous_molecules('HOH', replacements)))
-    ['HH']
-    """
-    start = split_molecule(start)
-    replacements = {
-        c: [ split_molecule(repl) for repl in repls ]
-        for c, repls in replacements.items()
-    }
-    for c, repls in replacements.items():
-        for repl in repls:
-            for i in find_all(repl, start):
-                prev_molecule = list(start)
-                prev_molecule[i:i+len(repl)] = [c]
-                if len(prev_molecule) > 1 and 'e' in prev_molecule:
-                    continue
-                s = join_molecule(prev_molecule)
-                yield s
-
-
-def find_all(needle, haystack):
-    """
-    >>> list(find_all('abc', 'xxabcxx'))
-    [2]
-    >>> list(find_all('xxx', 'xxabcxx'))
-    []
-    >>> list(find_all('xx', 'xxxabxx'))
-    [0, 1, 5]
-    """
-    assert len(needle) > 0
-    needle_len = len(needle)
-    for i in range(len(haystack) - needle_len + 1):
-        if haystack[i:i+needle_len] == needle:
-            yield i
-
+            yield tuple(next_molecule)
 
 
 def search_molecule(final, replacements):
     """
-    >>> replacements = {'e': ['H', 'O'], 'H': ['HO', 'OH'], 'O': ['HH']}
-    >>> search_molecule('HOHOHO', replacements)
+    >>> replacements = {'e': [('H',), ('O',)], 'H': [('H', 'O'), ('O', 'H')], 'O': [('H', 'H')]}
+    >>> search_molecule(split_molecule('HOHOHO'), replacements)
     6
     """
-    molecules = {final}
+    final = final
+    len_final = len(final)
+    molecules = {('e',)}
     for i in count():
         print(i, len(molecules))
-        assert len(molecules) > 0
-        # for m in molecules:
-        #     print(m)
-        if any( m == 'e' for m in molecules ):
-            break
-        prev_molecules = set()
         for m in molecules:
-            prev_molecules.update(previous_molecules(m, replacements))
-        molecules = prev_molecules
+            print(join_molecule(m))
+        if any( m == final for m in molecules ):
+            break
+        molecules = {
+            m for m in molecules
+            if len(m) < len_final
+        }
+        next_set = set()
+        for m in molecules:
+            next_set.update(next_molecules(m, replacements))
+        molecules = next_set
     return i
 
 
