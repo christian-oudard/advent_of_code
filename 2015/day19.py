@@ -70,50 +70,25 @@ def find_subsequence(needle, haystack):
     return None
 
 
-def previous_molecules(molecule, replacements):
-    """
-    Find a replacement that would generate the current molecule. Prioritize larger replacements.
-
-    >>> replacements = [('H', ['H', 'O']), ('H', ['O', 'H']), ('O', ['H', 'H']), ('e', ['H']), ('e', ['O'])]
-    >>> list(previous_molecules(split_molecule('HO'), replacements))[0]
-    ['H']
-    """
-    for before, after in replacements:
-        idx = find_subsequence(after, molecule)
-        if idx is None:
-            continue
-        new_molecule = list(molecule)
-        new_molecule[idx : idx + len(after)] = [before]
-        yield new_molecule
-
-
 def num_distinct(molecules):
     return len(set(tuple(mol) for mol in molecules))
 
 
 def search_molecule(molecule, replacements):
-    """
-    >>> replacements = [('H', ['H', 'O']), ('H', ['O', 'H']), ('O', ['H', 'H']), ('e', ['H']), ('e', ['O'])]
-    >>> search_molecule(split_molecule('HOHOHO'), replacements)
-    6
-    """
-    # Identify atoms which only appear on the right side of replacements.
-    # Sort the replacements to prioritize length then right-side-only.
-    left_side_atoms = set( l for l, _ in replacements )
-    right_side_atoms = set( r for _, rs in replacements for r in rs )
-    right_side_only = right_side_atoms - left_side_atoms
-    replacements.sort(reverse=True, key=lambda x: len(x[1]) + int(any( r in right_side_only for r in x[1] )))
-
-    # Work backward from the target molecule.
-    count = 0
-    # print(join_molecule(molecule))
+    # This is actually a terribly written problem, because it relies on a particular structure of the target molecule.
+    # Real search algorithms like DFS and A* fail terribly here.
+    steps = 0
     while molecule != ['e']:
-        for new_molecule in previous_molecules(molecule, replacements):
-            molecule = new_molecule
-            # print(join_molecule(new_molecule))
-            break  #TODO: backtracking
-        count += 1
-    return count
+        changed = False
+        for before, after in replacements:
+            idx = find_subsequence(after, molecule)
+            if idx is not None:
+                molecule = molecule[:idx] + [before] + molecule[idx + len(after):]
+                steps += 1
+                changed = True
+        if not changed:
+            raise RuntimeError('No valid replacements left.')
+    return steps
 
 
 if __name__ == '__main__':
@@ -124,3 +99,4 @@ if __name__ == '__main__':
 
     # Part 2.
     print(search_molecule(target, replacements))
+
